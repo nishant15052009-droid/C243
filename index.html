@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0f1a">
+<title>CardVault</title>
+<style>
+:root{--bg:#0b0f1a;--panel:#141a2b;--line:#222b44;--text:#eef1f8;--muted:#8d97b3;--accent:#6c8cff;--danger:#ff5d73}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,select,textarea{font:inherit;color:var(--text);background:#0f1424;border:1px solid var(--line);border-radius:12px;padding:12px;width:100%;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+label{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px}
+.wrap{max-width:520px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+h1{font-size:20px;margin:0}
+h1 small{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.ibtn{width:42px;height:42px;border-radius:12px;background:var(--panel);border:1px solid var(--line);display:inline-grid;place-items:center;font-size:18px}
+.primary{background:var(--accent);color:#fff;padding:13px 16px;border-radius:12px;font-weight:600;width:100%}
+.ghost{background:var(--panel);border:1px solid var(--line);padding:9px 12px;border-radius:10px;font-size:13px}
+.danger{color:var(--danger)}
+.search{margin-bottom:14px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tabs button{flex:1;padding:9px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:13px;color:var(--muted)}
+.tabs button.on{color:#fff;border-color:var(--accent);background:#1a2340}
+/* card */
+.card{position:relative;aspect-ratio:1.586;border-radius:18px;padding:18px 20px;color:#fff;overflow:hidden;box-shadow:0 12px 28px rgba(0,0,0,.45);display:flex;flex-direction:column;justify-content:space-between;user-select:none}
+.card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% -10%,rgba(255,255,255,.28),transparent 55%),radial-gradient(circle at -10% 110%,rgba(255,255,255,.12),transparent 50%);pointer-events:none}
+.card>*{position:relative}
+.row{display:flex;justify-content:space-between;align-items:center}
+.bank{font-weight:700;font-size:15px;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.ctype{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;opacity:.85;border:1px solid rgba(255,255,255,.6);padding:3px 7px;border-radius:20px}
+.chip{width:42px;height:32px;border-radius:7px;background:linear-gradient(135deg,#f3dd9d,#c9a24d 55%,#e9cf86);position:relative;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.chip::after{content:"";position:absolute;inset:6px 9px;border:1px solid rgba(0,0,0,.28);border-radius:3px}
+.nfc{font-size:20px;opacity:.85;margin-left:10px;transform:rotate(90deg);display:inline-block}
+.num{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:clamp(16px,5.2vw,23px);letter-spacing:2px;text-shadow:0 1px 2px rgba(0,0,0,.35);white-space:nowrap}
+.meta{display:flex;justify-content:space-between;align-items:flex-end;font-size:11px}
+.meta .l{opacity:.75;font-size:9px;letter-spacing:1px;text-transform:uppercase}
+.meta .v{font-size:14px;font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:1px;text-transform:uppercase}
+.net{font-style:italic;font-weight:800;font-size:19px;letter-spacing:.5px;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.item{margin-bottom:22px}
+.actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.detail{margin-top:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;display:flex;gap:16px;flex-wrap:wrap}
+.detail b{font-family:ui-monospace,Menlo,monospace;letter-spacing:1px}
+.detail span.k{color:var(--muted);font-size:11px;display:block}
+.empty{text-align:center;color:var(--muted);padding:60px 10px}
+.empty .big{font-size:48px}
+/* sheet */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.sheet-bg.open{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:520px;max-height:94vh;overflow:auto;border-radius:22px 22px 0 0;padding:16px 16px 28px;border:1px solid var(--line)}
+.sheet h2{margin:2px 0 12px;font-size:18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.themes{display:flex;gap:10px;overflow:auto;padding:4px 2px 8px}
+.sw{flex:0 0 auto;width:46px;height:32px;border-radius:9px;border:2px solid transparent}
+.sw.on{border-color:#fff;box-shadow:0 0 0 2px var(--accent)}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;padding:11px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--muted)}
+.seg button.on{color:#fff;border-color:var(--accent);background:#1a2340}
+/* lock */
+#lock{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
+#lock .box{width:100%;max-width:360px;text-align:center}
+#lock .logo{font-size:54px;margin-bottom:6px}
+#lock p{color:var(--muted);font-size:13px;margin:6px 0 18px}
+#lock input{text-align:center;margin-bottom:12px}
+.err{color:var(--danger);font-size:13px;min-height:18px;margin-bottom:8px}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#fff;color:#111;padding:10px 16px;border-radius:30px;font-size:13px;z-index:99;opacity:0;transition:.25s;pointer-events:none}
+.toast.show{opacity:1}
+.warn{background:#3a2a10;border:1px solid #6b4c14;color:#ffd48a;padding:10px 12px;border-radius:12px;font-size:12px;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<div id="lock"><div class="box">
+  <div class="logo">🔐</div>
+  <h1 id="lockTitle">CardVault</h1>
+  <p id="lockMsg"></p>
+  <input id="pw" type="password" placeholder="Master password" autocomplete="off">
+  <input id="pw2" type="password" placeholder="Confirm password" autocomplete="off" style="display:none">
+  <div class="err" id="lockErr"></div>
+  <button class="primary" id="lockBtn">Unlock</button>
+</div></div>
+
+<div class="wrap" id="app" style="display:none">
+  <header>
+    <h1>CardVault<small id="count"></small></h1>
+    <div style="display:flex;gap:8px">
+      <button class="ibtn" id="menuBtn" title="Backup">⋯</button>
+      <button class="ibtn" id="lockNow" title="Lock">🔒</button>
+      <button class="ibtn" id="addBtn" title="Add card" style="background:var(--accent);border-color:var(--accent)">＋</button>
+    </div>
+  </header>
+  <div id="cryptoWarn" class="warn" style="display:none">Your browser blocked secure encryption on this page, so data is stored without encryption. Open the file in Chrome or Firefox for full protection.</div>
+  <input class="search" id="q" placeholder="Search bank, name, last 4 digits…">
+  <div class="tabs" id="tabs">
+    <button data-f="all" class="on">All</button><button data-f="credit">Credit</button><button data-f="debit">Debit</button>
+  </div>
+  <div id="list"></div>
+</div>
+
+<div class="sheet-bg" id="sheetBg"><div class="sheet" id="sheet">
+  <h2 id="sheetTitle">Add card</h2>
+  <div id="preview"></div>
+  <label>Card type</label>
+  <div class="seg" id="typeSeg"><button data-t="credit" class="on">Credit</button><button data-t="debit">Debit</button></div>
+  <label>Bank / Issuer</label><input id="fBank" placeholder="e.g. My Bank" autocomplete="off">
+  <label>Card number</label><input id="fNum" inputmode="numeric" placeholder="0000 0000 0000 0000" autocomplete="off">
+  <div class="grid2">
+    <div><label>Expiry (MM/YY)</label><input id="fExp" inputmode="numeric" placeholder="MM/YY" maxlength="5" autocomplete="off"></div>
+    <div><label>CVV</label><input id="fCvv" inputmode="numeric" type="password" placeholder="•••" maxlength="4" autocomplete="off"></div>
+  </div>
+  <label>Name on card</label><input id="fName" placeholder="FULL NAME" autocomplete="off">
+  <label>Theme</label><div class="themes" id="themes"></div>
+  <label>Notes (optional)</label><textarea id="fNotes" rows="2" placeholder="Billing date, limit, linked account…"></textarea>
+  <div class="err" id="fErr" style="margin-top:10px"></div>
+  <div class="grid2" style="margin-top:6px">
+    <button class="ghost" id="cancelBtn" style="padding:13px">Cancel</button>
+    <button class="primary" id="saveBtn">Save card</button>
+  </div>
+</div></div>
+
+<div class="sheet-bg" id="menuBg"><div class="sheet">
+  <h2>Backup &amp; settings</h2>
+  <p style="color:var(--muted);font-size:13px;margin-top:0">Backups stay encrypted with your master password. Keep a copy somewhere safe — if you forget the password, data cannot be recovered.</p>
+  <div class="actions" style="flex-direction:column">
+    <button class="ghost" id="exportBtn" style="padding:13px">⬇ Export encrypted backup</button>
+    <button class="ghost" id="importBtn" style="padding:13px">⬆ Import backup</button>
+    <button class="ghost danger" id="wipeBtn" style="padding:13px">Erase everything</button>
+    <button class="ghost" id="closeMenu" style="padding:13px">Close</button>
+  </div>
+  <input type="file" id="file" accept=".json,application/json" style="display:none">
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+const KEY="cardvault.v1";
+const THEMES=[
+ ["Midnight","linear-gradient(135deg,#1b2845,#0c1226 60%,#2c3e78)"],
+ ["Ocean","linear-gradient(135deg,#0072ff,#00c6ff)"],
+ ["Royal","linear-gradient(135deg,#5b2a86,#7a5cff 60%,#c471f5)"],
+ ["Emerald","linear-gradient(135deg,#0f6b4f,#11998e 55%,#38ef7d)"],
+ ["Sunset","linear-gradient(135deg,#ff512f,#dd2476)"],
+ ["Gold","linear-gradient(135deg,#7a5a1a,#c9a24d 50%,#f5deb3)"],
+ ["Rose","linear-gradient(135deg,#b76e79,#e8a9a9 60%,#f7d4cf)"],
+ ["Graphite","linear-gradient(135deg,#232526,#414345)"],
+ ["Crimson","linear-gradient(135deg,#8e0e00,#c31432 60%,#f0504b)"],
+ ["Aurora","linear-gradient(135deg,#0f2027,#2c5364 55%,#1de9b6)"]
+];
+const NET_THEME={Visa:0,Mastercard:4,RuPay:3,Amex:1,Diners:7,Discover:5};
+const $=s=>document.querySelector(s);
+const enc=new TextEncoder(),dec=new TextDecoder();
+const hasCrypto=!!(window.crypto&&crypto.subtle);
+let cards=[],cryptoKey=null,salt=null,filter="all",revealed=new Set(),editing=null,form={},idle=null;
+
+/* ---------- storage / crypto ---------- */
+const b64=b=>btoa(String.fromCharCode(...new Uint8Array(b)));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function deriveKey(pw,s){
+  const km=await crypto.subtle.importKey("raw",enc.encode(pw),"PBKDF2",false,["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2",salt:s,iterations:250000,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+}
+function readBlob(){try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}}
+async function persist(){
+  if(!hasCrypto){localStorage.setItem(KEY,JSON.stringify({v:1,plain:cards}));return}
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},cryptoKey,enc.encode(JSON.stringify(cards)));
+  localStorage.setItem(KEY,JSON.stringify({v:1,salt:b64(salt),iv:b64(iv),data:b64(ct)}));
+}
+async function tryDecrypt(blob,pw){
+  const s=unb64(blob.salt),k=await deriveKey(pw,s);
+  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(blob.iv)},k,unb64(blob.data));
+  return {cards:JSON.parse(dec.decode(pt)),key:k,salt:s};
+}
+
+/* ---------- lock screen ---------- */
+function showLock(){
+  cards=[];cryptoKey=null;revealed.clear();closeSheets();
+  $("#app").style.display="none";$("#lock").style.display="flex";
+  const blob=readBlob();
+  $("#pw").value="";$("#pw2").value="";$("#lockErr").textContent="";
+  if(!blob){
+    $("#lockMsg").textContent="Create a master password. Everything is encrypted and stays on this device.";
+    $("#pw2").style.display="block";$("#lockBtn").textContent="Create vault";$("#lockBtn").dataset.mode="new";
+  }else{
+    $("#lockMsg").textContent="Enter your master password to open your cards.";
+    $("#pw2").style.display="none";$("#lockBtn").textContent="Unlock";$("#lockBtn").dataset.mode="open";
+  }
+}
+async function unlock(){
+  const pw=$("#pw").value,mode=$("#lockBtn").dataset.mode,err=$("#lockErr");
+  err.textContent="";
+  try{
+    if(mode==="new"){
+      if(pw.length<6){err.textContent="Use at least 6 characters.";return}
+      if(pw!==$("#pw2").value){err.textContent="Passwords don't match.";return}
+      if(hasCrypto){salt=crypto.getRandomValues(new Uint8Array(16));cryptoKey=await deriveKey(pw,salt)}
+      cards=[];await persist();
+    }else{
+      const blob=readBlob();
+      if(blob.plain){cards=blob.plain}
+      else{const r=await tryDecrypt(blob,pw);cards=r.cards;cryptoKey=r.key;salt=r.salt}
+    }
+    $("#lock").style.display="none";$("#app").style.display="block";
+    $("#cryptoWarn").style.display=hasCrypto?"none":"block";
+    render();resetIdle();
+  }catch(e){err.textContent="Wrong password.";}
+}
+$("#lockBtn").onclick=unlock;
+["#pw","#pw2"].forEach(s=>$(s).addEventListener("keydown",e=>{if(e.key==="Enter")unlock()}));
+$("#lockNow").onclick=showLock;
+function resetIdle(){clearTimeout(idle);idle=setTimeout(()=>{if($("#app").style.display!=="none")showLock()},90000)}
+["click","touchstart","keydown"].forEach(ev=>document.addEventListener(ev,()=>{if($("#app").style.display!=="none")resetIdle()},{passive:true}));
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&$("#app").style.display!=="none")showLock()});
+
+/* ---------- helpers ---------- */
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const digits=s=>String(s||"").replace(/\D/g,"");
+function network(n){
+  n=digits(n);if(!n)return "";
+  if(/^3[47]/.test(n))return "Amex";
+  if(/^3(0[0-5]|[68])/.test(n))return "Diners";
+  if(/^4/.test(n))return "Visa";
+  if(/^(5[1-5]|2(2[2-9]|[3-6]|7[01]|720))/.test(n))return "Mastercard";
+  if(/^(60|65|81|82|508)/.test(n))return "RuPay";
+  if(/^6(011|5|4[4-9])/.test(n))return "Discover";
+  return "";
+}
+function fmtNum(n,net){
+  n=digits(n).slice(0,net==="Amex"?15:19);
+  if(net==="Amex")return [n.slice(0,4),n.slice(4,10),n.slice(10)].filter(Boolean).join(" ");
+  return n.replace(/(.{4})/g,"$1 ").trim();
+}
+function masked(n,net){
+  const d=digits(n);if(!d)return "•••• •••• •••• ••••";
+  const last=d.slice(-4),hid=d.slice(0,-4).replace(/\d/g,"•");
+  return fmtNum(hid+last,net).replace(/\d/g,m=>m).replace(/^$/,"");
+}
+function luhn(n){n=digits(n);let s=0,alt=false;for(let i=n.length-1;i>=0;i--){let d=+n[i];if(alt){d*=2;if(d>9)d-=9}s+=d;alt=!alt}return n.length>=12&&s%10===0}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1600)}
+
+function cardHTML(c,reveal){
+  const net=network(c.number);
+  const bg=(THEMES[c.theme]||THEMES[0])[1];
+  const numTxt=reveal?fmtNum(c.number,net)||"0000 0000 0000 0000":masked(c.number,net);
+  return `<div class="card" style="background:${bg}">
+    <div class="row"><span class="bank">${esc(c.bank||"Your Bank")}</span><span class="ctype">${c.type==="debit"?"Debit":"Credit"}</span></div>
+    <div class="row" style="justify-content:flex-start"><span class="chip"></span><span class="nfc">)))</span></div>
+    <div class="num">${esc(numTxt)}</div>
+    <div class="meta">
+      <div><div class="l">Card holder</div><div class="v" style="font-size:12px">${esc(c.holder||"FULL NAME")}</div></div>
+      <div><div class="l">Valid thru</div><div class="v">${esc(c.exp||"MM/YY")}</div></div>
+      <div class="net">${esc(net)}</div>
+    </div></div>`;
+}
+
+/* ---------- list ---------- */
+function render(){
+  $("#count").textContent=cards.length+(cards.length===1?" card":" cards")+" · encrypted on this device";
+  const q=$("#q").value.trim().toLowerCase();
+  const list=cards.filter(c=>(filter==="all"||c.type===filter)&&(!q||[c.bank,c.holder,digits(c.number).slice(-4),c.notes].join(" ").toLowerCase().includes(q)));
+  if(!list.length){
+    $("#list").innerHTML=`<div class="empty"><div class="big">💳</div><p>${cards.length?"No cards match.":"No cards yet. Tap ＋ to add your first card."}</p></div>`;return;
+  }
+  $("#list").innerHTML=list.map(c=>{
+    const r=revealed.has(c.id);
+    return `<div class="item" data-id="${c.id}">
+      ${cardHTML(c,r)}
+      ${r?`<div class="detail"><div><span class="k">CVV</span><b>${esc(c.cvv||"—")}</b></div><div><span class="k">Number</span><b>${esc(digits(c.number))}</b></div>${c.notes?`<div style="flex-basis:100%"><span class="k">Notes</span>${esc(c.notes)}</div>`:""}</div>`:""}
+      <div class="actions">
+        <button class="ghost" data-a="toggle">${r?"🙈 Hide":"👁 Show"}</button>
+        <button class="ghost" data-a="copy">📋 Copy no.</button>
+        <button class="ghost" data-a="edit">✏️ Edit</button>
+        <button class="ghost danger" data-a="del">🗑</button>
+      </div></div>`}).join("");
+}
+$("#list").addEventListener("click",async e=>{
+  const b=e.target.closest("button[data-a]");if(!b)return;
+  const id=b.closest(".item").dataset.id,c=cards.find(x=>x.id===id),a=b.dataset.a;
+  if(a==="toggle"){revealed.has(id)?revealed.delete(id):revealed.add(id);render()}
+  if(a==="copy"){try{await navigator.clipboard.writeText(digits(c.number));toast("Number copied")}catch(_){toast("Copy not allowed here — use Show")}}
+  if(a==="edit")openForm(c);
+  if(a==="del"&&confirm("Delete this card?")){cards=cards.filter(x=>x.id!==id);await persist();render();toast("Deleted")}
+});
+$("#q").oninput=render;
+$("#tabs").onclick=e=>{const b=e.target.closest("button");if(!b)return;filter=b.dataset.f;[...$("#tabs").children].forEach(x=>x.classList.toggle("on",x===b));render()};
+
+/* ---------- form ---------- */
+function drawThemes(){
+  $("#themes").innerHTML=THEMES.map((t,i)=>`<button class="sw ${form.theme===i?"on":""}" data-i="${i}" title="${t[0]}" style="background:${t[1]}"></button>`).join("");
+}
+function drawPreview(){$("#preview").innerHTML=cardHTML(form,true);$("#preview").style.marginBottom="6px"}
+function openForm(c){
+  editing=c?c.id:null;
+  form=c?{...c}:{type:"credit",bank:"",number:"",exp:"",cvv:"",holder:"",theme:0,notes:""};
+  $("#sheetTitle").textContent=c?"Edit card":"Add card";
+  $("#fBank").value=form.bank;$("#fNum").value=fmtNum(form.number,network(form.number));$("#fExp").value=form.exp;
+  $("#fCvv").value=form.cvv;$("#fName").value=form.holder;$("#fNotes").value=form.notes;$("#fErr").textContent="";
+  [...$("#typeSeg").children].forEach(b=>b.classList.toggle("on",b.dataset.t===form.type));
+  drawThemes();drawPreview();$("#sheetBg").classList.add("open");
+}
+function closeSheets(){$("#sheetBg").classList.remove("open");$("#menuBg").classList.remove("open")}
+$("#addBtn").onclick=()=>openForm(null);
+$("#cancelBtn").onclick=closeSheets;
+$("#sheetBg").addEventListener("click",e=>{if(e.target.id==="sheetBg")closeSheets()});
+$("#menuBg").addEventListener("click",e=>{if(e.target.id==="menuBg")closeSheets()});
+$("#typeSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;form.type=b.dataset.t;[...$("#typeSeg").children].forEach(x=>x.classList.toggle("on",x===b));drawPreview()};
+$("#themes").onclick=e=>{const b=e.target.closest("button");if(!b)return;form.theme=+b.dataset.i;drawThemes();drawPreview()};
+$("#fBank").oninput=e=>{form.bank=e.target.value;drawPreview()};
+$("#fName").oninput=e=>{form.holder=e.target.value.toUpperCase();drawPreview()};
+$("#fNotes").oninput=e=>{form.notes=e.target.value};
+$("#fCvv").oninput=e=>{e.target.value=digits(e.target.value);form.cvv=e.target.value};
+$("#fExp").oninput=e=>{let d=digits(e.target.value).slice(0,4);if(d.length>2)d=d.slice(0,2)+"/"+d.slice(2);e.target.value=d;form.exp=d;drawPreview()};
+$("#fNum").oninput=e=>{
+  const prev=network(form.number);
+  form.number=digits(e.target.value);
+  const net=network(form.number);
+  e.target.value=fmtNum(form.number,net);
+  if(net&&net!==prev&&NET_THEME[net]!==undefined&&!editing&&form.theme===0){form.theme=NET_THEME[net];drawThemes()}
+  drawPreview();
+};
+$("#saveBtn").onclick=async()=>{
+  const err=$("#fErr");err.textContent="";
+  const d=digits(form.number);
+  if(d.length<12){err.textContent="Enter a valid card number.";return}
+  if(!/^(0[1-9]|1[0-2])\/\d{2}$/.test(form.exp||"")){err.textContent="Enter expiry as MM/YY.";return}
+  if(!luhn(d)&&!confirm("This number doesn't pass the standard card check. Save anyway?"))return;
+  const rec={...form,number:d,id:editing||("c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6))};
+  if(editing)cards=cards.map(x=>x.id===editing?rec:x);else cards.unshift(rec);
+  await persist();closeSheets();render();toast("Saved");
+};
+
+/* ---------- backup ---------- */
+$("#menuBtn").onclick=()=>$("#menuBg").classList.add("open");
+$("#closeMenu").onclick=closeSheets;
+$("#exportBtn").onclick=()=>{
+  const blob=localStorage.getItem(KEY);if(!blob){toast("Nothing to export");return}
+  if(window.Android){window.Android.saveBackup("cardvault-backup-"+new Date().toISOString().slice(0,10)+".json",blob);return}
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([blob],{type:"application/json"}));
+  a.download="cardvault-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);toast("Backup downloaded");
+};
+$("#importBtn").onclick=()=>$("#file").click();
+$("#file").onchange=async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  try{
+    const blob=JSON.parse(await f.text());
+    if(blob.plain){cards=blob.plain}
+    else{
+      const pw=prompt("Enter the master password of this backup:");if(pw===null)return;
+      const r=await tryDecrypt(blob,pw);
+      if(!confirm("Replace the cards currently stored here with this backup ("+r.cards.length+" cards)?"))return;
+      cards=r.cards;cryptoKey=r.key;salt=r.salt;
+    }
+    await persist();closeSheets();render();toast("Backup restored");
+  }catch(_){toast("Could not read that backup")}
+};
+$("#wipeBtn").onclick=()=>{
+  if(confirm("Erase ALL cards and the master password from this device? This cannot be undone.")&&confirm("Really erase everything?")){
+    localStorage.removeItem(KEY);closeSheets();showLock();
+  }
+};
+
+window.cvLock=function(){if($("#app").style.display!=="none")showLock()};
+showLock();
+})();
+</script>
+</body>
+</html>
